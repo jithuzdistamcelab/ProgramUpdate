@@ -31,7 +31,7 @@ def extract_integer(fee_string, duration_string):
     fee_string = str(fee_string)
 
     # Define the list of unwanted words
-    unwanted_data = ["years", "year", "per", "points", "pts", "semester"]
+    unwanted_data = ["years", "year", "per", "points", "pts", "semester","y1"]
     exception_from_unwanted_data = ["1.5"]
     ranger = ["-", "–"]  # Symbols that indicate range
 
@@ -126,7 +126,7 @@ try:
     for index, row in filtered_data.iterrows():
         if row['extracted_fees'] is not None:  # Only update if the fee is not None
             query=f"UPDATE programs SET fees_new = {row['extracted_fees']} WHERE fees = '{row['fees']}'"
-            print(query)
+            # print(query)
             cursor.execute(query)
 
     # Commit the changes
