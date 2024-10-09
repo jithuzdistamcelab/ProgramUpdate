@@ -1,5 +1,10 @@
 import pandas as pd
 import re
+import psycopg2
+from config import *
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Load the CSV file into a DataFrame
 df = pd.read_csv('LivingExpense.csv')
@@ -39,4 +44,42 @@ cleaned_df.to_csv("output_cleaned.csv", index=False)
 # Save rows with exceptions or None values to a separate CSV file
 null_rows.to_csv("output_nulls.csv", index=False)
 
-print("Data cleaned and saved successfully.")
+try:
+    # # Establish the connection to the database
+    conn = psycopg2.connect(
+        host=HOST,
+        database=DATABASE,
+        user=USER,
+        password=PASSWORD,
+        port=PORT
+    )
+    print(HOST)
+
+    # Create a cursor object
+    cursor = conn.cursor()
+
+    # Use a set to store unique queries
+    queries = set()  # Initialize as a set to avoid duplicates
+
+    # Create the update queries
+    for index, row in cleaned_df.iterrows():
+        if row['extracted_expense'] is not None:  # Only update if the fee is not None
+            query = f"UPDATE programs SET living_expense_value = {row['extracted_expense']} WHERE livingexpense = '{row['livingexpense']}'"
+            # print(query)
+            queries.add(query)  # Add the query to the set
+    print(len(queries))
+
+    # Execute each unique query
+    for query in queries:
+        print(query)
+        cursor.execute(query)
+
+    # Commit the changes
+    conn.commit()
+
+except Exception as e:
+    print(e)
+
+finally:
+    cursor.close()
+    conn.close()
